@@ -1,0 +1,14 @@
+/target
+/backend/target
+/backend/target/*
+/backend/target
+
+/frontend/node_modules
+/frontend/dist
+/frontend/dist/*
+/frontend/dist
+
+/frontend/node_modules
+/frontend/dist
+/frontend/dist/*
+/frontend/dist

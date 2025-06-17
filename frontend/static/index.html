@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kreativ Afføringstæller</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        poop: '#8B4513',
+                    }
+                }
+            }
+        }
+    </script>
+    <script>
+        async function fetchData() {
+            const response = await fetch('/data');
+            const data = await response.json();
+            document.getElementById('daily-avg').innerText = data.daily_avg.toFixed(2);
+            document.getElementById('weekly-poop').innerText = data.weekly_poop;
+            const leaderboard = JSON.parse(data.leaderboard);
+            const leaderboardList = document.getElementById('leaderboard');
+            leaderboardList.innerHTML = '';
+            leaderboard.forEach(user => {
+                const li = document.createElement('li');
+                li.innerText = `${user.name}: ${user.poop_count}`;
+                leaderboardList.appendChild(li);
+            });
+        }
+
+        async function recordPoop() {
+            await fetch('/poop', { method: 'POST' });
+            fetchData();
+        }
+
+        window.onload = fetchData;
+    </script>
+</head>
+<body class="bg-black text-white font-sans">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-4xl font-bold text-center text-poop mb-8 animate-bounce">💩 Afføringstæller 💩</h1>
+        <div class="max-w-md mx-auto bg-gray-900 rounded-xl shadow-lg overflow-hidden md:max-w-2xl mb-8 transform hover:scale-105 transition-transform duration-300">
+            <div class="p-8">
+                <div class="text-center mb-4">
+                    <h2 class="text-2xl font-bold">Welcome to the site!</h2>
+                </div>
+                <div class="mb-4">
+                    <button onclick="recordPoop()" class="bg-poop text-white px-4 py-2 rounded">Record Poop</button>
+                </div>
+                <div class="mb-4">
+                    <p>Daily Average: <span id="daily-avg">0</span></p>
+                    <p>Weekly Poop Count: <span id="weekly-poop">0</span></p>
+                </div>
+                <div class="mb-4">
+                    <h3 class="text-xl font-bold">Leaderboard</h3>
+                    <ul id="leaderboard"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
