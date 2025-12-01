@@ -1,64 +1,64 @@
 # ⚡ Energy Drink Tracker
 
-Dette er en **Energy Drink Tracker** webapplikation bygget med **Rust (Rocket)** og **Tailwind CSS**. 
+This is an **Energy Drink Tracker** web application built with **Rust (Rocket)** and **Tailwind CSS**.
 
-Formålet er simpelt: Hold styr på dit (og dine venners) energidrik-forbrug i et intenst Cyberpunk-tema.
+The goal is simple: Keep track of your (and your friends') energy drink consumption in an intense Cyberpunk theme.
 
 ![Theme Preview](https://img.shields.io/badge/Theme-Cyberpunk_Neon-success)
 
-## Funktioner
+## Features
 
-*   **Bruger System**: Opret brugere og log ind sikkert.
-*   **Live Tracking**: Registrer hver gang du drikker en energidrik.
-*   **Leaderboard**: Se hvem der har drukket flest energidrikke i realtid.
-*   **Statistik**: Følg dit daglige gennemsnit og ugentlige total.
-*   **Responsivt Design**: Virker på både desktop og mobil med et lækkert neon-interface.
+*   **User System**: Create users and log in securely.
+*   **Live Tracking**: Record every time you drink an energy drink.
+*   **Leaderboard**: See who has consumed the most energy drinks in real-time.
+*   **Statistics**: Track your daily average and weekly total.
+*   **Responsive Design**: Works on both desktop and mobile with a sleek neon interface.
 
-## Teknologier
+## Technologies
 
 *   **Backend**: Rust (Rocket Framework)
-    *   Håndterer API, sessions (cookies) og in-memory database.
+    *   Handles API, sessions (cookies), and in-memory database.
 *   **Frontend**: HTML, JavaScript & Tailwind CSS (via CDN)
-    *   Ingen tunge frontend-frameworks, bare ren performance.
+    *   No heavy frontend frameworks, just pure performance.
 
-## Installation og Kørsel
+## Installation and Usage
 
-Følg disse trin for at køre projektet lokalt.
+Follow these steps to run the project locally.
 
-### Forudsætninger
+### Prerequisites
 *   [Rust & Cargo](https://www.rust-lang.org/tools/install)
-*   [Node.js](https://nodejs.org/) (Kun nødvendigt, hvis du vil ændre i CSS build-processen, ellers valgfrit)
+*   [Node.js](https://nodejs.org/) (Only needed if you want to modify the CSS build process, otherwise optional)
 
-### Start Projektet
+### Start the Project
 
-1.  **Start Backend Serveren:**
+1.  **Start the Backend Server:**
 
-    Gå ind i `backend`-mappen og kør:
+    Navigate to the `backend` folder and run:
     ```bash
     cd backend
     cargo run
     ```
-    *Dette vil kompilere Rust-koden og starte serveren.*
+    *This will compile the Rust code and start the server.*
 
-2.  **Åbn Appen:**
+2.  **Open the App:**
 
-    Når serveren skriver `Rocket has launched...`, åbn din browser og gå til:
+    When the server says `Rocket has launched...`, open your browser and go to:
     
     👉 **http://127.0.0.1:8000**
 
-### Sådan bruger du den
-1.  Opret en ny bruger på startsiden.
-2.  Log ind med din nye bruger.
-3.  Tryk på den store **DRINK ENERGY** knap, når du bunder en dåse.
-4.  Se din rangering stige på leaderboardet!
+### How to Use
+1.  Create a new user on the landing page.
+2.  Log in with your new user.
+3.  Click the big **DRINK ENERGY** button when you finish a can.
+4.  Watch your rank rise on the leaderboard!
 
-## Projektstruktur
+## Project Structure
 
-*   `backend/src/main.rs`: Al backend-logik (API endpoints, bruger-structs).
+*   `backend/src/main.rs`: All backend logic (API endpoints, user structs).
 *   `frontend/static/`:
-    *   `index.html`: Hovedsiden (Dashboard).
-    *   `login.html`: Login og registrering.
+    *   `index.html`: Main page (Dashboard).
+    *   `login.html`: Login and registration.
     *   `styles.css`: Tailwind styles.
 
 ---
-*Bemærk: Data gemmes kun i serverens hukommelse (RAM). Hvis du genstarter serveren, nulstilles tælleren og brugerne.*
+*Note: Data is only stored in the server's memory (RAM). If you restart the server, the counter and users will be reset.*
