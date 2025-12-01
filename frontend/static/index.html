@@ -3,64 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kreativ Afføringstæller</title>
+    <title>Energidrik Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        poop: '#8B4513',
+                        energy: '#39ff14', // Neon green
+                        darkbg: '#0a0a0a',
+                        cardbg: '#1a1a1a',
+                    },
+                    boxShadow: {
+                        'neon': '0 0 10px #39ff14, 0 0 20px #39ff14',
+                        'neon-hover': '0 0 20px #39ff14, 0 0 40px #39ff14',
                     }
                 }
             }
         }
     </script>
+    <style>
+        body {
+            background-color: #050505;
+            background-image: radial-gradient(circle at 50% 50%, #1a2e1a 0%, #000000 100%);
+            min-height: 100vh;
+        }
+        .glass-panel {
+            background: rgba(26, 26, 26, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(57, 255, 20, 0.2);
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 10px rgba(57, 255, 20, 0.5); }
+            50% { box-shadow: 0 0 25px rgba(57, 255, 20, 0.8); }
+        }
+        .btn-pulse:hover {
+            animation: pulse-glow 1s infinite;
+        }
+    </style>
     <script>
         async function fetchData() {
-            const response = await fetch('/data');
-            const data = await response.json();
-            document.getElementById('daily-avg').innerText = data.daily_avg.toFixed(2);
-            document.getElementById('weekly-poop').innerText = data.weekly_poop;
-            const leaderboard = JSON.parse(data.leaderboard);
-            const leaderboardList = document.getElementById('leaderboard');
-            leaderboardList.innerHTML = '';
-            leaderboard.forEach(user => {
-                const li = document.createElement('li');
-                li.innerText = `${user.name}: ${user.poop_count}`;
-                leaderboardList.appendChild(li);
-            });
+            try {
+                const response = await fetch('/data');
+                if (!response.ok) throw new Error('Failed to load');
+                const data = await response.json();
+                
+                // Opdater stats med en tæller-animation
+                animateValue(document.getElementById('daily-avg'), parseFloat(document.getElementById('daily-avg').innerText), data.daily_avg, 1000, 2);
+                animateValue(document.getElementById('weekly-energy'), parseInt(document.getElementById('weekly-energy').innerText), data.weekly_poop || data.weekly_energy, 1000, 0);
+                
+                // Leaderboard
+                const leaderboard = JSON.parse(data.leaderboard);
+                // Sorter leaderboard efter antal (højest først)
+                leaderboard.sort((a, b) => (b.energy_count || b.poop_count) - (a.energy_count || a.poop_count));
+                
+                const leaderboardList = document.getElementById('leaderboard');
+                leaderboardList.innerHTML = '';
+                
+                leaderboard.forEach((user, index) => {
+                    const count = user.energy_count !== undefined ? user.energy_count : user.poop_count;
+                    
+                    const div = document.createElement('div');
+                    div.className = `flex justify-between items-center p-3 rounded mb-2 ${index === 0 ? 'bg-yellow-900/30 border border-yellow-500/50' : 'bg-gray-800/50 hover:bg-gray-700/50'} transition-colors`;
+                    
+                    let rankIcon = `<span class="text-gray-500 font-mono w-6 text-right mr-3">#${index + 1}</span>`;
+                    if (index === 0) rankIcon = '<span class="text-2xl mr-2">👑</span>';
+                    if (index === 1) rankIcon = '<span class="text-xl mr-2">🥈</span>';
+                    if (index === 2) rankIcon = '<span class="text-xl mr-2">🥉</span>';
+
+                    div.innerHTML = `
+                        <div class="flex items-center">
+                            ${rankIcon}
+                            <span class="font-bold text-gray-200">${user.name}</span>
+                        </div>
+                        <span class="text-energy font-mono text-xl font-bold">${count} <span class="text-xs text-gray-500">dåser</span></span>
+                    `;
+                    leaderboardList.appendChild(div);
+                });
+            } catch (e) {
+                console.error(e);
+            }
         }
 
-        async function recordPoop() {
-            await fetch('/poop', { method: 'POST' });
-            fetchData();
+        function animateValue(obj, start, end, duration, decimals) {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                const value = progress * (end - start) + start;
+                obj.innerHTML = value.toFixed(decimals);
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        async function recordEnergy() {
+            const btn = document.getElementById('record-btn');
+            
+            // Visuel feedback på knappen
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⚡ REGISTRERET! ⚡';
+            btn.classList.add('scale-110', 'bg-white', 'text-black');
+            btn.classList.remove('bg-energy', 'text-black');
+            
+            await fetch('/energy', { method: 'POST' });
+            
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.classList.remove('scale-110', 'bg-white', 'text-black');
+                btn.classList.add('bg-energy', 'text-black');
+                fetchData();
+            }, 500);
         }
 
         window.onload = fetchData;
+        // Opdater hvert 5. sekund
+        setInterval(fetchData, 5000);
     </script>
 </head>
-<body class="bg-black text-white font-sans">
-    <div class="container mx-auto px-4 py-8">
-        <h1 class="text-4xl font-bold text-center text-poop mb-8 animate-bounce">💩 Afføringstæller 💩</h1>
-        <div class="max-w-md mx-auto bg-gray-900 rounded-xl shadow-lg overflow-hidden md:max-w-2xl mb-8 transform hover:scale-105 transition-transform duration-300">
-            <div class="p-8">
-                <div class="text-center mb-4">
-                    <h2 class="text-2xl font-bold">Welcome to the site!</h2>
+<body class="text-white font-sans overflow-x-hidden">
+    <!-- Main Container -->
+    <div class="container mx-auto px-4 py-8 min-h-screen flex flex-col items-center justify-center">
+        
+        <!-- Header -->
+        <header class="text-center mb-10 w-full">
+            <h1 class="text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-energy drop-shadow-[0_0_10px_rgba(57,255,20,0.8)] mb-2 animate-pulse">
+                ENERGY TRACKER
+            </h1>
+            <p class="text-gray-400 text-lg tracking-widest uppercase">Hold styr på koffeinen</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full max-w-5xl">
+            
+            <!-- Left Column: Actions & Personal Stats -->
+            <div class="space-y-8">
+                <!-- Action Card -->
+                <div class="glass-panel rounded-2xl p-8 text-center shadow-neon relative overflow-hidden group">
+                    <div class="absolute inset-0 bg-energy opacity-0 group-hover:opacity-5 transition-opacity duration-500"></div>
+                    
+                    <h2 class="text-2xl font-bold mb-6 text-gray-200">Drikker du en lige nu?</h2>
+                    
+                    <button id="record-btn" onclick="recordEnergy()" class="btn-pulse w-full py-6 rounded-xl bg-energy text-black font-black text-2xl uppercase tracking-wider transform transition-all duration-200 active:scale-95 shadow-[0_0_20px_rgba(57,255,20,0.4)] hover:shadow-[0_0_30px_rgba(57,255,20,0.6)]">
+                        DRINK ENERGY ⚡
+                    </button>
+                    
+                    <p class="mt-4 text-xs text-gray-500">Klik for at registrere +1 energidrik</p>
                 </div>
-                <div class="mb-4">
-                    <button onclick="recordPoop()" class="bg-poop text-white px-4 py-2 rounded">Record Poop</button>
+
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="glass-panel rounded-xl p-6 text-center border-l-4 border-l-energy">
+                        <p class="text-gray-400 text-sm uppercase mb-1">Denne Uge</p>
+                        <p id="weekly-energy" class="text-4xl font-mono font-bold text-white">0</p>
+                    </div>
+                    <div class="glass-panel rounded-xl p-6 text-center border-l-4 border-l-blue-500">
+                        <p class="text-gray-400 text-sm uppercase mb-1">Dagligt Snit</p>
+                        <p id="daily-avg" class="text-4xl font-mono font-bold text-blue-400">0.00</p>
+                    </div>
                 </div>
-                <div class="mb-4">
-                    <p>Daily Average: <span id="daily-avg">0</span></p>
-                    <p>Weekly Poop Count: <span id="weekly-poop">0</span></p>
+            </div>
+
+            <!-- Right Column: Leaderboard -->
+            <div class="glass-panel rounded-2xl p-6 h-full min-h-[400px] flex flex-col">
+                <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-700">
+                    <h3 class="text-xl font-bold flex items-center">
+                        <span class="mr-2">🏆</span> Førertavle
+                    </h3>
+                    <span class="text-xs text-green-500 animate-pulse">● Live opdatering</span>
                 </div>
-                <div class="mb-4">
-                    <h3 class="text-xl font-bold">Leaderboard</h3>
-                    <ul id="leaderboard"></ul>
+                
+                <div class="flex-grow overflow-y-auto pr-2 custom-scrollbar">
+                    <div id="leaderboard" class="space-y-2">
+                        <!-- Items will be injected here -->
+                        <div class="animate-pulse flex space-x-4">
+                            <div class="flex-1 space-y-4 py-1">
+                                <div class="h-4 bg-gray-700 rounded w-3/4"></div>
+                                <div class="h-4 bg-gray-700 rounded"></div>
+                                <div class="h-4 bg-gray-700 rounded w-5/6"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <footer class="mt-12 text-gray-600 text-sm">
+            &copy; 2024 Dumb Rust Website
+        </footer>
     </div>
 </body>
 </html>

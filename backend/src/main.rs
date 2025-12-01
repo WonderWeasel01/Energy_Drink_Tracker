@@ -19,7 +19,7 @@ struct Login {
 struct User {
     name: String,
     password: String,
-    poop_count: u32,
+    energy_count: u32,
 }
 
 type UserMap = Mutex<HashMap<String, User>>;
@@ -36,26 +36,28 @@ async fn index(cookies: &CookieJar<'_>, users: &State<UserMap>) -> Option<NamedF
     NamedFile::open(Path::new("../frontend/static/login.html")).await.ok()
 }
 
+use rocket::response::Redirect;
+
 #[post("/login", data = "<login>")]
-async fn login(cookies: &CookieJar<'_>, login: Form<Login>, users: &State<UserMap>) -> &'static str {
+async fn login(cookies: &CookieJar<'_>, login: Form<Login>, users: &State<UserMap>) -> Result<Redirect, &'static str> {
     let users = users.lock().await;
     if let Some(user) = users.get(&login.name) {
         if user.password == login.password {
             cookies.add(Cookie::new("username", user.name.clone()));
-            return "Login successful";
+            return Ok(Redirect::to("/"));
         }
     }
-    "Invalid name or password"
+    Err("Invalid name or password")
 }
 
-#[post("/poop")]
-async fn record_poop(cookies: &CookieJar<'_>, users: &State<UserMap>) -> &'static str {
+#[post("/energy")]
+async fn record_energy(cookies: &CookieJar<'_>, users: &State<UserMap>) -> &'static str {
     if let Some(cookie) = cookies.get("username") {
         let username = cookie.value();
         let mut users = users.lock().await;
         if let Some(user) = users.get_mut(username) {
-            user.poop_count += 1;
-            return "Poop recorded";
+            user.energy_count += 1;
+            return "Energy drink recorded";
         }
     }
     "User not logged in"
@@ -67,12 +69,12 @@ async fn get_data(cookies: &CookieJar<'_>, users: &State<UserMap>) -> Option<Str
         let username = cookie.value();
         let users = users.lock().await;
         if let Some(user) = users.get(username) {
-            let daily_avg = user.poop_count as f32 / 7.0;
+            let daily_avg = user.energy_count as f32 / 7.0;
             let leaderboard: Vec<_> = users.values().cloned().collect();
             let leaderboard = serde_json::to_string(&leaderboard).unwrap();
             let data = serde_json::json!({
                 "daily_avg": daily_avg,
-                "weekly_poop": user.poop_count,
+                "weekly_energy": user.energy_count,
                 "leaderboard": leaderboard,
             });
             return Some(data.to_string());
@@ -92,6 +94,6 @@ async fn add_user(user: Form<User>, users: &State<UserMap>) -> &'static str {
 fn rocket() -> Rocket<Build> {
     rocket::build()
         .manage(Mutex::new(HashMap::<String, User>::new()))
-        .mount("/", routes![index, login, record_poop, get_data, add_user])
+        .mount("/", routes![index, login, record_energy, get_data, add_user])
         .mount("/static", FileServer::from(relative!("../frontend/static")))
 }
